@@ -20,7 +20,7 @@ db.connect((err) => {
   if (err) {
     console.error(chalk.red('Erro de conexão no Database:'), err.stack);
   } else {
-    console.log(chalk.green('Conectado com sucesso no Database!'));
+    console.log(chalk.bgCyanBright('Conectado com sucesso no Database!'));
   }
 });
 
