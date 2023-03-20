@@ -70,3 +70,34 @@ export async function getShort(req, res) {
     }
 }
 
+export async function deleteUrl(req, res) {
+    const { user } = res.locals;
+    const { id } = req.params;
+
+    try {
+        const {
+            rows: [urlExist],
+        } = await db.query(`SELECT * FROM shortens WHERE id = $1`, [id]);
+
+        if (!urlExist)  return res.sendStatus(404);
+        
+
+        const {
+            rows: [userUrlExist],
+        } = await db.query(`SELECT * FROM shortens WHERE id = $1 AND "userId" = $2;`, [id, user.id]);
+
+        if (!userUrlExist) return res.sendStatus(401);
+       
+        await db.query(`DELETE FROM shortens WHERE id = $1`, [userUrlExist.id]);
+
+        return res.status(204).send('Deletado com sucesso!');
+
+
+    } catch(err) {
+        console.log(err)
+        res.status(500).send('Erro: ' + err)
+
+
+    }
+}
+
