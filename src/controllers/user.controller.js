@@ -37,16 +37,47 @@ export async function signin(req, res) {
   const { rows: usuarios } = await db.query(`
     SELECT * FROM users WHERE email = $1
     `, [email])
-    const [usuario] = usuarios
+  const [usuario] = usuarios
 
   if (!usuarios) return res.sendStatus(401)
 
-  if (bcrypt.compareSync(password, usuario.password)){
+  if (bcrypt.compareSync(password, usuario.password)) {
     await db.query(`INSERT INTO sessions (token, "userId") VALUES ($1, $2)`, [token, usuario.id])
 
-    return res.send ({token} )
+    return res.send({ token })
   }
   res.sendStatus(401)
- 
+
 }
 
+export async function getUser(req, res) {
+  const { user } = res.locals
+
+  try {
+
+    const views = await db.query(`
+    SELECT SUM(shortens."visitCount") FROM shortens WHERE "userId" = $1`, [user.id])
+
+    const [visitCount] = views.rows
+
+    const urls = await db.query(`
+    SELECT * FROM shortens WHERE "userId" = $1`, [user.id])
+
+    const shortenedUrls = urls.rows.map((row) => {
+      return{
+        id: row.id,
+        shortUrl: row.shortUrl,
+        visitCount: row.visitCount
+      }
+    })
+res.send({
+  id: user.id,
+  name: user.name,
+  visitCount: visitCount.sum || 0,
+  shortenedUrls
+})
+  } catch (err) {
+    console.log(err)
+    res.status(500).send('Erro: ' + err)
+  }
+}
