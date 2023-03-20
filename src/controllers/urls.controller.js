@@ -18,4 +18,27 @@ export async function postShorten (req, res) {
 
 }
 
+export async function getUrlById (req, res) {
+    const {id} = req.params
+
+    try{
+        const {
+            rows: [urlExiste],
+          } = await db.query(`SELECT * FROM shortens WHERE id = $1`, [id])
+
+        if(!urlExiste) return res.status(404).send('Url não encontrada')
+
+        
+        return res.status(200).send({
+            id: urlExiste.id,
+        shortUrl: urlExiste.shortUrl,
+    url: urlExiste.url})
+
+    }catch(err){
+        console.log(err)
+        res.status(500).send('Erro: ' + err)
+
+    }
+
+}
 
